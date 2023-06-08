@@ -271,8 +271,55 @@ let coach_level= 'All';
 let coach_location= 'All';
 let coach_card = document.getElementById("coach-card");
 
-window.onload = async function WindowLoad(event) {
-   await getCoachData(getDataURL)
+window.onload = async function WindowLoad(event) {    
+   let url;
+    let reloadPage = false;
+    console.log("START ")
+    console.log("prvs-btn ",  localStorage.getItem("prvs-btn"))
+
+   if(localStorage.getItem("prvs-btn") === "true"){
+      reloadPage = localStorage.getItem("prvs-btn");
+      localStorage.setItem("prvs-btn", false);
+      if(localStorage.getItem("pageNum")){
+         pageNum = localStorage.getItem("pageNum");
+      }
+
+
+      if(localStorage.getItem("coach_name")){
+         coach_name = localStorage.getItem("coach_name");
+      }
+      if(localStorage.getItem("coach_sports")){
+         coach_sports = localStorage.getItem("coach_sports");
+      }
+      if(localStorage.getItem("coach_gender")){
+         coach_gender = localStorage.getItem("coach_gender");
+      }
+      if(localStorage.getItem("coach_level")){
+         coach_level = localStorage.getItem("coach_level");
+      }
+      if(localStorage.getItem("coach_location")){
+         coach_location = localStorage.getItem("coach_location");
+      }
+
+      if(localStorage.getItem("query") === "search"){
+         url = postDataURL;
+      }
+   }else{
+      pageNum = 1;
+      localStorage.setItem("pageNumn", 1);
+   }
+   console.log("reloadPage ",  reloadPage)
+   console.log("url ",  url)
+   console.log("pageNum ",  pageNum)
+ 
+   if(reloadPage && url){
+      console.log("111")
+     await getCoachData(url)
+   }else{
+       console.log("222")
+       await getCoachData(getDataURL)
+   }
+  
 }
 
 
@@ -359,13 +406,15 @@ async function callPagination(URL){
       item.addEventListener('click', async function(e){
          e.preventDefault();
 
+
+
          let pageNumber = e.target.textContent
          console.log("click", pageNumber)
-         
+
          $('html, body').animate({
             'scrollTop':$('#coach_wrpr').offset().top - 185
          }, 2000);
-         
+
          if(!isNaN(pageNumber)){   
             if(parseInt(pageNumber) >= 1){
                pageNum =  parseInt(pageNumber);
@@ -378,6 +427,15 @@ async function callPagination(URL){
          else{
             pageNum =  1;
          }
+
+         // Set local variables for retrieving data
+         localStorage.setItem("prvsUrl", URL);
+         localStorage.setItem("coach_sports", coach_sports);
+         localStorage.setItem("coach_gender", coach_gender);
+         localStorage.setItem("coach_level", coach_level);
+         localStorage.setItem("coach_location", coach_location);  
+         localStorage.setItem("pageNum", pageNum);  
+
          await getCoachData(URL)
 
       })
@@ -422,7 +480,7 @@ search_button.addEventListener('click', async (e) => {
    e.target.previousElementSibling.style.opacity = '1'
    e.target.previousElementSibling.style.pointerEvents = 'auto'
    e.target.previousElementSibling.classList.add("show_clear_button"); 
-    
+
    pageNum = 1;
    document.getElementById("total_coach").innerHTML = `Coaches`
 
@@ -433,7 +491,13 @@ search_button.addEventListener('click', async (e) => {
    coach_level= document.querySelector('input[name="level"]:checked').value;
    coach_location= document.getElementById('coach-location').value;
 
-
+   localStorage.setItem("coach_name", coach_name);
+   localStorage.setItem("coach_sports", coach_sports);
+   localStorage.setItem("coach_gender", coach_gender);
+   localStorage.setItem("coach_level", coach_level);
+   localStorage.setItem("coach_location", coach_location);
+   localStorage.setItem("pageNum", pageNum);  
+   localStorage.setItem("query", "search");  
    console.log("coach_location:", coach_location)
    console.log("coach_sports:", coach_sports)
    console.log("coach_name:", coach_name)
@@ -543,16 +607,20 @@ function datafill(coach, profile_pic){
 function generatePagination(currentPage, totalPages, pageRange) {
    let startPage;
    let endPage;
-   
+
    debugger;
-   
+
    if (currentPage < 3) {
       startPage = 1;
       endPage = Math.min(pageRange, totalPages);
-   } else if (currentPage > totalPages - 3) {
+   } else if (currentPage > totalPages) {
       startPage = Math.max(totalPages - pageRange + 1, 1);
       endPage = totalPages;
-   } else {
+   } else if(currentPage === totalPages ){
+      startPage = currentPage - 2;
+      endPage = totalPages;
+   } 
+   else {
       startPage = currentPage - 2;
       endPage = currentPage + 2;
    }
